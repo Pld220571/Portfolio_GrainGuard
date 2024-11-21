@@ -1,123 +1,122 @@
 using System.Collections;
 using UnityEngine;
 
-public class MortarBullet : Projectile // Class representing a mortar bullet projectile
+public class MortarBullet : Projectile
 {
-    public enum ExplosionSoundType // Enum to define different explosion sound types
+    public enum ExplosionSoundType
     {
-        Lv1AndLv2, // Sound for levels 1 and 2
-        Lv3 // Sound for level 3
+        Lv1AndLv2,
+        Lv3
     }
 
     public float ArcHeight; // Height of the projectile's arc during flight
-    public float FlightDuration = 2.0f; // Duration of the projectile's flight
+    public float FlightDuration = 2.0f;
 
-    private Vector3 _startPoint; // Starting position of the projectile
-    private Vector3 _lastKnownTargetPosition; // Last known position of the target
-    private Transform _target; // Transform of the target the projectile is aimed at
-    private Collider2D _col; // Reference to the Collider2D component
+    private Vector3 _startPoint;
+    private Vector3 _lastKnownTargetPosition;
+    private Transform _target;
+    private Collider2D _col;
 
-    [Header("Explosion")] // Header for explosion-related variables in the inspector
+    [Header("Explosion")]
     [SerializeField] private float _ExpRadius; // Radius of the explosion effect
-    [SerializeField] private GameObject _PrefabWaterMelonExplosion; // Prefab for the watermelon explosion effect
-    [SerializeField] private GameObject _PrefabCrater; // Prefab for the crater effect
-    [SerializeField] private ExplosionSoundType _ExplosionSoundType; // Type of explosion sound to play
+    [SerializeField] private GameObject _PrefabWaterMelonExplosion;
+    [SerializeField] private GameObject _PrefabCrater;
+    [SerializeField] private ExplosionSoundType _ExplosionSoundType;
 
-    private AudioManager _audioManager; // Reference to the AudioManager for playing sounds
+    private AudioManager _audioManager;
 
-    public override void Start() // Override the Start method from the base Projectile class
+    public override void Start()
     {
-        base.Start(); // Call the base class Start method
-        _col = GetComponent<Collider2D>(); // Get the Collider2D component
+        base.Start();
+        _col = GetComponent<Collider2D>();
 
-        if (_col != null) // If the collider is found
+        if (_col != null)
         {
-            _col.enabled = false; // Disable the collider initially
+            _col.enabled = false;
         }
 
-        _audioManager = FindObjectOfType<AudioManager>(); // Find the AudioManager in the scene
+        _audioManager = FindObjectOfType<AudioManager>();
     }
 
     public void Launch(Transform targetTransform, float projectileSpeed) // Method to launch the projectile towards a target
     {
-        _startPoint = transform.position; // Set the starting point of the projectile
-        _target = targetTransform; // Set the target transform
+        _startPoint = transform.position;
+        _target = targetTransform;
         _lastKnownTargetPosition = _target.position; // Store the initial position of the target
-        StartCoroutine(MoveProjectile()); // Start the coroutine to move the projectile
+        StartCoroutine(MoveProjectile());
     }
 
-    private IEnumerator MoveProjectile() // Coroutine to handle the projectile's movement
+    private IEnumerator MoveProjectile()
     {
         float startTime = Time.time; // Record the start time of the movement
 
         while (true) // Loop until the projectile lands
         {
-            float elapsedTime = Time.time - startTime; // Calculate elapsed time
+            float elapsedTime = Time.time - startTime;
             float fractionOfJourney = elapsedTime / FlightDuration; // Calculate how far along the journey the projectile is
 
-            if (_target != null) // If there is a target
+            if (_target != null)
             {
                 _lastKnownTargetPosition = _target.position; // Update the last known target position
             }
 
-            // Calculate the current position of the projectile using linear interpolation and arc height
-            Vector3 currentPosition = Vector3.Lerp(_startPoint, _lastKnownTargetPosition, fractionOfJourney);
+            Vector3 currentPosition = Vector3.Lerp(_startPoint, _lastKnownTargetPosition, fractionOfJourney); // Calculate the current position of the projectile using linear interpolation and arc height
             float height = Mathf.Sin(Mathf.PI * fractionOfJourney) * ArcHeight; // Calculate the height for the arc
-            transform.position = new Vector3(currentPosition.x, currentPosition.y + height, currentPosition.z); // Set the projectile's position
+            transform.position = new Vector3(currentPosition.x, currentPosition.y + height, currentPosition.z);
 
             if (fractionOfJourney >= 1f) // If the projectile has reached its destination
             {
                 OnLanding(); // Handle landing effects
-                yield break; // Exit the coroutine
+                yield break;
             }
 
-            yield return null; // Wait for the next frame
+            yield return null;
         }
     }
 
-    private void OnLanding() // Method to handle actions when the projectile lands
+    private void OnLanding()
     {
-        if (_col != null) // If the collider is found
+        if (_col != null)
         {
-            _col.enabled = true; // Enable the collider for the explosion detection
+            _col.enabled = true;
         }
 
         Vector3 landingPosition = transform.position; // Get the landing position
-        Instantiate(_PrefabCrater, landingPosition, Quaternion.identity); // Instantiate the crater effect
-        Instantiate(_PrefabWaterMelonExplosion, landingPosition, Quaternion.identity); // Instantiate the explosion effect
-        Explosion(); // Call the explosion method
-        Destroy(gameObject); // Destroy the projectile
+        Instantiate(_PrefabCrater, landingPosition, Quaternion.identity); // Create a crater effect
+        Instantiate(_PrefabWaterMelonExplosion, landingPosition, Quaternion.identity); // Create an watermelon explosion effect
+        Explosion();
+        Destroy(gameObject);
     }
 
-    protected void OnTriggerEnter2D(Collider2D collision) // Method called when the projectile collides with another collider
+    protected void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Enemy")) // Check if the collided object has the tag "Enemy"
+        if (collision.CompareTag("Enemy"))
         {
-            Explosion(); // Call the explosion method
+            Explosion();
         }
         else
         {
-            Explosion(); // Call the explosion method for other collisions as well
+            Explosion();
         }
     }
 
-    private void Explosion() // Method to handle the explosion logic
+    private void Explosion()
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, _ExpRadius);
 
         foreach (Collider2D nearby in colliders)
         {
-            EnemyHealth enemyHealth = nearby.GetComponent<EnemyHealth>();
+            EnemyHealth enemyHealth = nearby.GetComponent<EnemyHealth>(); // Attempt to get the EnemyHealth component from the nearby collider
 
-            if (enemyHealth != null)
+            if (enemyHealth != null) // If an EnemyHealth component was found
             {
-                enemyHealth.SetShooter(_Shooter);
-                enemyHealth.ChangeHealth(-_ProjectileDamage);
+                enemyHealth.SetShooter(_Shooter); // Set the shooter reference on the enemy's health component
+                enemyHealth.ChangeHealth(-_ProjectileDamage); // Deal damage to the enemy
             }
         }
 
-        Instantiate(_PrefabCrater, transform.position, Quaternion.identity);
-        Instantiate(_PrefabWaterMelonExplosion, transform.position, Quaternion.identity);
+        Instantiate(_PrefabCrater, transform.position, Quaternion.identity); // Create an crater effect at the projectile's current position
+        Instantiate(_PrefabWaterMelonExplosion, transform.position, Quaternion.identity); // Create an explosion effect at the projectile's current position
         Destroy(gameObject);
 
         switch (_ExplosionSoundType)
@@ -134,6 +133,6 @@ public class MortarBullet : Projectile // Class representing a mortar bullet pro
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, _ExpRadius);
+        Gizmos.DrawWireSphere(transform.position, _ExpRadius); // Draw a wireframe sphere to represent the explosion radius
     }
 }
