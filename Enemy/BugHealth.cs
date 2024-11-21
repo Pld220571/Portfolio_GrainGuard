@@ -7,7 +7,7 @@ public class BugHealth : EnemyHealth
     private Tanky tanky;
 
     // Serialized field to allow assignment of a bug splash effect prefab in the Unity Inspector.
-    [SerializeField] private GameObject prefabBugSplash;
+    [SerializeField] private GameObject _PrefabBugSplash;
 
     // Override the Start method from the base class to perform initialization specific to BugHealth.
     public override void Start()
@@ -23,7 +23,7 @@ public class BugHealth : EnemyHealth
     protected override void Kill()
     {
         // Instantiate the bug splash effect prefab at the bug's current position with no rotation.
-        Instantiate(prefabBugSplash, transform.position, Quaternion.identity);
+        Instantiate(_PrefabBugSplash, transform.position, Quaternion.identity);
 
         // Call the base class's Kill method to ensure any common kill logic is executed.
         base.Kill();
