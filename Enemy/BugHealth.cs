@@ -9,9 +9,6 @@ public class BugHealth : EnemyHealth
     // Serialized field to allow assignment of a bug splash effect prefab in the Unity Inspector.
     [SerializeField] private GameObject prefabBugSplash;
 
-    // Private variable to hold a reference to the AudioManager for playing sound effects.
-    private AudioManager audioManager;
-
     // Override the Start method from the base class to perform initialization specific to BugHealth.
     public override void Start()
     {
@@ -20,9 +17,6 @@ public class BugHealth : EnemyHealth
 
         // Get the Tanky component attached to the same GameObject and store it in the tanky variable.
         tanky = GetComponent<Tanky>();
-
-        // Find the AudioManager instance in the scene and store it in the audioManager variable.
-        audioManager = FindObjectOfType<AudioManager>();
     }
 
     // Override the Kill method from the base class to provide custom behavior when the bug is killed.
