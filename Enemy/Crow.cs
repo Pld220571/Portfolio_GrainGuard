@@ -3,20 +3,17 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class Crow : MonoBehaviour
 {
-    [SerializeField] public float _Speed; // movement speed of the enemy
-    [SerializeField] private int _EnemyDamage; // damage dealt to the grains when the enemy collides with them
-
-    public int gainGold;
-    public int gainXP;
-
-    private CropsCheck _grains;
+    public float Speed;
+    [SerializeField] private int _EnemyDamage;
+    public int GainGold; // Amount of gold gained when the Crow is defeated
+    public int GainXP; // Amount of experience gained when the Crow is defeated
+    private CropsCheck _grains; // Reference to the closest crops
     private TownHallCheck _townHall;
     private Animator _animator;
     private Spawner _spawner;
     private PauseHandler _pauseHandler;
-    private bool died;
-
-    [SerializeField] private GameObject prefabFeatherParticle;
+    private bool _isDead;
+    [SerializeField] private GameObject _PrefabFeatherParticle;
 
     private void Start()
     {
@@ -30,88 +27,83 @@ public class Crow : MonoBehaviour
     {
         if (!_pauseHandler.gameOver)
         {
-            FindClosestTower();
-            // Move the enemy towards the grains
-            MoveToGrains();
-            // Get the direction from the enemy to the grains
-            float direction = GetDirection();
-            // Set the direction parameter on the animator to control the enemy's animation
-            _animator.SetFloat("direction", direction);
+            FindClosestTower(); // Find the closest crops to move towards
+            MoveToGrains(); // Move towards the closest crops or TownHall
+            float direction = GetDirection(); // Get the direction to face
+            _animator.SetFloat("direction", direction); // Set the animator's direction parameter
         }
     }
 
     public void FindClosestTower()
     {
-        // Find all colliders within the detection radius
-        float distanceToClosestBuilding = Mathf.Infinity;
-        CropsCheck closestTower = null;
-        CropsCheck[] allTowers = GameObject.FindObjectsOfType<CropsCheck>();
+        float distanceToClosestBuilding = Mathf.Infinity; // Initialize distance to infinity
+        CropsCheck closestTower = null; // Variable to hold the closest crops
+        CropsCheck[] allTowers = GameObject.FindObjectsOfType<CropsCheck>(); // Find all CropsCheck instances in the scene
 
-        // Iterate through the colliders to find the closest enemy with an EnemyHealth component
-        foreach (CropsCheck currentTower in allTowers)
+        foreach (CropsCheck currentTower in allTowers) // Loop through each crops
         {
-            float distanceToTower = (currentTower.transform.position - transform.position).sqrMagnitude;
-            if (distanceToTower < distanceToClosestBuilding)
+            float distanceToTower = (currentTower.transform.position - transform.position).sqrMagnitude; // Calculate squared distance to the current crops
+
+            if (distanceToTower < distanceToClosestBuilding) // Check if this crops is closer than the previous closest
             {
-                distanceToClosestBuilding = distanceToTower;
-                closestTower = currentTower;
+                distanceToClosestBuilding = distanceToTower; // Update the closest distance
+                closestTower = currentTower; // Update the closest crops reference
             }
-            _grains = closestTower;
+
+            _grains = closestTower; // Set the grains reference to the closest crops found
         }
     }
 
-    // Move the enemy towards the grains
-    private void MoveToGrains()
-    {
+    private void MoveToGrains() // Move the Crow towards the closest crops or TownHall
+    { 
         if (_grains != null)
         {
-            transform.position = Vector2.MoveTowards(this.transform.position, _grains.transform.position, _Speed * Time.deltaTime);
+            transform.position = Vector2.MoveTowards(this.transform.position, _grains.transform.position, Speed * Time.deltaTime); // Move the Crow towards the closest crops, if it exists
         }
-        else
+        else 
         {
-            transform.position = Vector2.MoveTowards(this.transform.position, _townHall.transform.position, _Speed * Time.deltaTime);
+            transform.position = Vector2.MoveTowards(this.transform.position, _townHall.transform.position, Speed * Time.deltaTime); // If no crops are found, move towards the TownHall
         }
     }
 
-    // Calculate the direction from the enemy to the grains
     private float GetDirection()
     {
-        Vector2 direction;
+        Vector2 direction; // Variable to hold the direction vector
 
         if (_grains != null)
         {
-            // Calculate the vector from the enemy to the closest tower
             direction = (_grains.transform.position - transform.position).normalized;
         }
         else
         {
-            // Calculate the vector from the enemy to the grains
             direction = (_townHall.transform.position - transform.position).normalized;
         }
-        // Calculate the vector from the enemy to the grains
-        // Convert the vector to an angle in degrees
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        return angle;
+
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg; // Calculate the angle in degrees
+        return angle; // Return the angle for the animation
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (died)
-        { return;
+        if (_isDead)
+        {
+            return;
         }
+
         if (collision.CompareTag("Crops"))
         {
-            Instantiate(prefabFeatherParticle, transform.position, Quaternion.identity);
-            _spawner.EnemyDestroyed();
-            died = true;
+            Instantiate(_PrefabFeatherParticle, transform.position, Quaternion.identity); // Create a feather particle effect at the Crow's position
+            _spawner.EnemyDestroyed(); // Notify the spawner that this enemy is destroyed
+            _isDead = true;
             collision.GetComponent<CropsHealth>().ChangeHealth(-_EnemyDamage);
             Destroy(gameObject);
         }
+
         if (collision.CompareTag("TownHall"))
         {
-            Instantiate(prefabFeatherParticle, transform.position, Quaternion.identity);
+            Instantiate(_PrefabFeatherParticle, transform.position, Quaternion.identity);
             _spawner.EnemyDestroyed();
-            died = true;
+            _isDead = true;
             collision.GetComponent<TownHallHealth>().ChangeHealth(-_EnemyDamage);
             Destroy(gameObject);
         }

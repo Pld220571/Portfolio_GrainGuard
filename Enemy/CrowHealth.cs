@@ -1,20 +1,21 @@
 using UnityEngine;
+
 public class CrowHealth : EnemyHealth
 {
-    private Crow crow;
-
-    [SerializeField] private GameObject prefabFeatherParticle;
+    private Crow _crow;
+    [SerializeField] private GameObject _PrefabFeatherParticle;
 
     public override void Start()
     {
         base.Start();
-        crow = GetComponent<Crow>();
+        _crow = GetComponent<Crow>();
     }
+
     protected override void Kill()
-    {
-        Instantiate(prefabFeatherParticle, transform.position, Quaternion.identity);
+    {   
+        Instantiate(_PrefabFeatherParticle, transform.position, Quaternion.identity); // Create a feather particle effect at the Crow's position upon death
         base.Kill();
-        GiveGold(crow.gainGold);
-        GiveXP(crow.gainXP);
+        GiveGold(_crow.GainGold); // Give gold to the player
+        GiveXP(_crow.GainXP); // Give experience points to the player
     }
 }

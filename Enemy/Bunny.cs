@@ -4,139 +4,120 @@ using UnityEngine;
 public class Bunny : MonoBehaviour
 {
     #region variables
-    [SerializeField] public float _Speed; // movement speed of the enemy
-    [SerializeField] private int _EnemyDamage; // damage dealt to the grains when the enemy collides with them
-    public int gainGold;
-    public int gainXP;
-
-    [HideInInspector] public GameObject _townHall; // the grains game object that the enemy is moving towards
+    public float Speed;
+    [SerializeField] private int _EnemyDamage;
+    public int GainGold; // Amount of gold gained when the Bunny is killed
+    public int GainXP; // Amount of experience gained when the Bunny is killed
+    [HideInInspector] public GameObject TownHall;
     private Animator _animator;
     private Spawner _spawner;
     private PauseHandler _pauseHandler;
-    private TowerCheck _target;
-    private bool died;
+    private TowerCheck _target; // The closest tower that the Bunny is targeting
 
-    [SerializeField] private GameObject prefabExplosion;
+    private bool _isDead;
+    [SerializeField] private GameObject _PrefabExplosion;
     private AudioManager _audioManager;
 
     #endregion
 
     private void Start()
     {
-        _townHall = GameObject.FindGameObjectWithTag("TownHall");
+        TownHall = GameObject.FindGameObjectWithTag("TownHall");
         _animator = GetComponent<Animator>();
         _spawner = FindAnyObjectByType<Spawner>();
-        _pauseHandler = FindAnyObjectByType<PauseHandler>();
         _audioManager = FindObjectOfType<AudioManager>();
+        _pauseHandler = FindAnyObjectByType<PauseHandler>();
     }
 
-    // Update function to find the closest tower and move towards it
     private void Update()
     {
         if (!_pauseHandler.gameOver)
         {
-            FindClosestTower();
-            MoveToTarget();
-
-            // Set the animator's direction based on the enemy's movement direction
-            float direction = GetDirection();
-            _animator.SetFloat("direction", direction);
+            FindClosestTower(); // Call to find the closest tower to target
+            MoveToTarget(); // Move the Bunny towards the target tower
+            float direction = GetDirection(); // Get the direction angle towards the target
+            _animator.SetFloat("direction", direction); // Update animator with the current direction
         }
     }
 
-    // Function to find the closest tower to the enemy
     public void FindClosestTower()
     {
-        // Find all colliders within the detection radius
-        float distanceToClosestBuilding = Mathf.Infinity;
-        TowerCheck closestTower = null;
-        TowerCheck[] allTowers = GameObject.FindObjectsOfType<TowerCheck>();
+        float distanceToClosestBuilding = Mathf.Infinity; // Initialize to maximum possible distance
+        TowerCheck closestTower = null; // Variable to store the closest tower found
+        TowerCheck[] allTowers = GameObject.FindObjectsOfType<TowerCheck>(); // Get all TowerCheck objects in the scene
 
-        // Iterate through the colliders to find the closest enemy with an EnemyHealth component
-        foreach (TowerCheck currentTower in allTowers)
+        foreach (TowerCheck currentTower in allTowers)// Loop through all found towers to determine the closest one
         {
-            float distanceToTower = (currentTower.transform.position - transform.position).sqrMagnitude;
-            if (distanceToTower < distanceToClosestBuilding)
+            float distanceToTower = (currentTower.transform.position - transform.position).sqrMagnitude; // Calculate squared distance
+
+            if (distanceToTower < distanceToClosestBuilding) // Check if this tower is closer than the previous closest
             {
-                distanceToClosestBuilding = distanceToTower;
-                closestTower = currentTower;
+                distanceToClosestBuilding = distanceToTower; // Update the closest distance
+                closestTower = currentTower; // Update the closest tower reference
             }
-            _target = closestTower;
+
+            _target = closestTower; // Set the target to the closest tower found
         }
     }
 
-    // Function to move the enemy towards the closest tower or grains
     private void MoveToTarget()
     {
-        // Move towards the closest tower if it's within range
         if (_target != null)
         {
-            transform.position = Vector2.MoveTowards(this.transform.position, _target.transform.position, _Speed * Time.deltaTime);
+            transform.position = Vector2.MoveTowards(this.transform.position, _target.transform.position, Speed * Time.deltaTime);
         }
     }
 
-    // Function to calculate the enemy's movement direction
     private float GetDirection()
     {
-        Vector2 direction;
-
-        // Check if the enemy is targeting a tower
+        Vector2 direction; // Variable to hold the direction vector
         if (_target != null)
         {
-            // Calculate the vector from the enemy to the closest tower
-            direction = (_target.transform.position - transform.position).normalized;
+            direction = (_target.transform.position - transform.position).normalized; // Calculate direction towards the tower, if it exists
         }
         else
         {
-            // Calculate the vector from the enemy to the grains
-            direction = (_townHall.transform.position - transform.position).normalized;
+            direction = (TownHall.transform.position - transform.position).normalized; // If there is no tower, move towards the TownHall
         }
 
-        // Convert the vector to an angle in degrees
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        return angle;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg; // Convert direction to angle in degrees
+        return angle; // Return the angle for animator
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (died)
+        if (_isDead)
         {
             return;
         }
+
         if (collision.CompareTag("Tower"))
         {
-            
-            Instantiate(prefabExplosion, transform.position, Quaternion.identity);
+            Instantiate(_PrefabExplosion, transform.position, Quaternion.identity); // Create an explosion effect at the Bunny's position
             _audioManager.PlaySFX(_audioManager.explosionSFX, 1);
-
-            // Deal damage to the Tower
-            collision.GetComponent<TowerHealth>().ChangeHealth(-_EnemyDamage);
-            died = true;
-            _spawner.EnemyDestroyed();
+            collision.GetComponent<TowerHealth>().ChangeHealth(-_EnemyDamage); // Apply damage to the Tower's health component
+            _isDead = true;
+            _spawner.EnemyDestroyed(); // Notify the spawner that this enemy is destroyed
             Destroy(gameObject);
         }
 
         if (collision.CompareTag("Crops"))
         {
-            Instantiate(prefabExplosion, transform.position, Quaternion.identity);
-            _audioManager.PlaySFX(_audioManager.explosionSFX, 1);
-
-            // Deal damage to the TownHall
-            collision.GetComponent<CropsHealth>().ChangeHealth(-_EnemyDamage);
-            died = true;
-            _spawner.EnemyDestroyed();
-            Destroy(gameObject);
+            Instantiate(_PrefabExplosion, transform.position, Quaternion.identity); // Create an explosion effect
+            _audioManager.PlaySFX(_audioManager.explosionSFX, 1); // Play sound effect
+            collision.GetComponent<CropsHealth>().ChangeHealth(-_EnemyDamage); // Damage the crops
+            _isDead = true; // Mark the Bunny as dead
+            _spawner.EnemyDestroyed(); // Notify the spawner
+            Destroy(gameObject); // Remove the Bunny
         }
 
         if (collision.CompareTag("TownHall"))
         {
-            Instantiate(prefabExplosion, transform.position, Quaternion.identity);
+            Instantiate(_PrefabExplosion, transform.position, Quaternion.identity); // Create an explosion effect at the Bunny's position
             _audioManager.PlaySFX(_audioManager.explosionSFX, 1);
-
-            // Deal damage to the TownHall
-            collision.GetComponent<TownHallHealth>().ChangeHealth(-_EnemyDamage);
-            died = true;
-            _spawner.EnemyDestroyed();
+            collision.GetComponent<TownHallHealth>().ChangeHealth(-_EnemyDamage); // Damage the TownHall            
+            _isDead = true;
+            _spawner.EnemyDestroyed(); // Notify the spawner
             Destroy(gameObject);
         }
     }
