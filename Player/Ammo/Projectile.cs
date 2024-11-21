@@ -6,30 +6,30 @@ public class Projectile : MonoBehaviour
     [SerializeField] protected float _ProjectileDamage;
     [SerializeField] protected float _TimeToDestroy;
 
-    protected MonoBehaviour _Shooter;
-    private AudioManager audioManager;
-    private TownhallUpgrade townhallUpgrade;
+    protected MonoBehaviour _shooter;
+    private AudioManager _audioManager;
+    private TownhallUpgrade _townhallUpgrade;
 
     public virtual void Start()
     {
-        audioManager = FindObjectOfType<AudioManager>();
-        townhallUpgrade = FindObjectOfType<TownhallUpgrade>();
+        _audioManager = FindObjectOfType<AudioManager>();
+        _townhallUpgrade = FindObjectOfType<TownhallUpgrade>();
         ApplyDamageMultiplier();
         Destroy(gameObject, _TimeToDestroy);
     }
 
-    protected void ApplyDamageMultiplier()
+    protected void ApplyDamageMultiplier() // Method to apply damage multipliers based on upgrades
     {
-        _ProjectileDamage = _ProjectileDamage * townhallUpgrade.dmgMultiplier;
+        _ProjectileDamage = _ProjectileDamage * _townhallUpgrade.dmgMultiplier;
     }
 
     public virtual void DmgSound()
     {
-        audioManager.PlaySFX(audioManager.enemyDeathSFX, 1);
+        _audioManager.PlaySFX(_audioManager.enemyDeathSFX, 1);
     }
 
-    public void SetShooter(MonoBehaviour shooter)
+    public void SetShooter(MonoBehaviour shooter) // Method to set the shooter of the projectile
     {
-        _Shooter = shooter;
+        _shooter = shooter; // Assign the shooter reference
     }
 }
