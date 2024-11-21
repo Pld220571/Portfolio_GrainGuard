@@ -3,65 +3,37 @@ using UnityEngine;
 
 public class Tomato : Crops
 {
-    // The total number of evolution stages the tomato plant will go through
-    [SerializeField] private int _EvolutionsAmount;
+    [SerializeField] private int _EvolutionsAmount; // Number of times the tomato can evolve
+    [SerializeField] private int _GoldIncrease; // Amount of gold increase per evolution
+    [SerializeField] private float _UpgradeCountdown; // Time interval between evolutions
+    [SerializeField] private GameObject[] _evolutionSprites; // Array of sprites for each evolution stage
 
-    // The amount of gold earned each time the tomato plant evolves
-    [SerializeField] private int _GoldIncrease;
+    private int _currentEvolution; // Tracks the current evolution stage
 
-    // The time (in seconds) between each evolution stage
-    [SerializeField] private float _UpgradeCountdown;
-
-    // An array of prefabs, each representing a different evolution stage of the tomato plant
-    [SerializeField] private GameObject[] _evolutionSprites;
-
-    // The current evolution stage of the tomato plant (initialized to 0)
-    private int _currentEvolution;
-
-    // Called when the script is initialized
     private new void Start()
     {
-        // Call the Start() method of the base class (Crops)
         base.Start();
-
-        // Start the evolution coroutine
         StartCoroutine(StartEvolution());
     }
 
-    // Coroutine responsible for evolving the tomato plant over time
-    IEnumerator StartEvolution()
+    IEnumerator StartEvolution() // Coroutine to manage the evolution process
     {
-        // Loop _EvolutionsAmount times
-        for (int i = 0; i < _EvolutionsAmount; i++)
+        for (int i = 0; i < _EvolutionsAmount; i++) // Loop through the number of evolutions
         {
-            // Wait for _UpgradeCountdown seconds
             yield return new WaitForSeconds(_UpgradeCountdown);
-
-            // Evolve the tomato plant to the next stage
-            Evolve();
+            Evolve(); // Call the Evolve method to evolve the tomato
         }
     }
 
-    //evolve the current tomato to the next stage
-    private void Evolve()
+    private void Evolve() // Method to handle the evolution of the tomato
     {
-        // Check if the current evolution is not the last one in the array
-        if (_currentEvolution < _evolutionSprites.Length - 1)
+        if (_currentEvolution < _evolutionSprites.Length - 1) // Check if there are more evolutions available
         {
-            // Destroy the current game object's child (i.e., the current evolution)
-            Destroy(gameObject.transform.GetChild(0).gameObject);
-
-            // Instantiate the next evolution at the current position and rotation
-            GameObject nextEvolution = Instantiate(_evolutionSprites[++_currentEvolution], transform.position, transform.rotation);
-
-            // Set the parent of the next evolution to the current game object
-            nextEvolution.transform.parent = transform;
-
-            // Set the local Y position of the new child to 0.82f
-            nextEvolution.transform.localPosition = new Vector3(0, 0.82f, 0);
-
-            // Increase the gold by the gold increase amount
-            _Gold = _Gold + _GoldIncrease;
+            Destroy(gameObject.transform.GetChild(0).gameObject); // Destroy the current evolution sprite
+            GameObject nextEvolution = Instantiate(_evolutionSprites[++_currentEvolution], transform.position, transform.rotation); // Create the next evolution sprite
+            nextEvolution.transform.parent = transform; // Set the parent of the new sprite to the tomato
+            nextEvolution.transform.localPosition = new Vector3(0, 0.82f, 0); // Position the new sprite slightly above the current position
+            _Gold = _Gold + _GoldIncrease; // Increase the gold value after evolution
         }
     }
 }
