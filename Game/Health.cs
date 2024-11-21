@@ -1,45 +1,39 @@
 using UnityEngine;
 using System.Collections;
 
-// Defining an abstract class Health that inherits from MonoBehaviour
 public abstract class Health : MonoBehaviour
 {
-    [SerializeField] public float _MaxHealth;
-    [SerializeField] public float _CurrentHealth;
-    public bool died;
+    public float MaxHealth;
+    public float CurrentHealth;
+    public bool IsDead;
 
-    // Serialized array of colors for flashing the sprite
-    [SerializeField] protected Color[] _FlashColors;
+    [SerializeField] protected Color[] _FlashColors; // Array of colors used for flashing effect on hit
 
     private SpriteRenderer _spriteRenderer;
 
-
     public virtual void Start()
     {
-        _CurrentHealth = _MaxHealth;
+        CurrentHealth = MaxHealth;
         _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 
-    // ChangeHealth method that changes the current health by a given amount and checks if the game object should be killed or hit
-    public virtual void ChangeHealth(float amount)
+    public virtual void ChangeHealth(float amount) // Method to change the current health by a specified amount
     {
-        _CurrentHealth = _CurrentHealth + amount;
-        CheckHealth();
+        CurrentHealth = CurrentHealth + amount; // Update current health
+        CheckHealth(); // Check if health is below zero after the change
     }
 
-    // ChangeMaxHealth method that changes the max health and current health by a given amount
-    public virtual void ChangeMaxHealth(float amount)
+    public virtual void ChangeMaxHealth(float amount) // Method to change the maximum health of the entity
     {
-        _MaxHealth = _MaxHealth + amount;
-        CheckHealth();
+        MaxHealth = MaxHealth + amount; // Update maximum health
+        CheckHealth(); // Check health status after changing max health
     }
 
-    // CheckHealth method that checks if the current health is less than or equal to zero. If it is, the game object is killed. Otherwise, it is hit.
     protected virtual void CheckHealth()
     {
-        if (_CurrentHealth <= 0)
+        if (CurrentHealth <= 0)
         {
-            _CurrentHealth = 0;
+            CurrentHealth = 0;
             Kill();
         }
         else
@@ -50,27 +44,25 @@ public abstract class Health : MonoBehaviour
 
     protected virtual void Kill()
     {
-        if (died)
+        if (IsDead)
         {
             return;
         }
-        died = true;
+        IsDead = true;
         Destroy(gameObject);
     }
 
-    // Hit method that starts a coroutine to flash the sprite
     protected virtual void Hit()
     {
-        StartCoroutine(FlashSprite(0.1f));
+        StartCoroutine(FlashSprite(0.1f)); // Start the coroutine to flash the sprite
     }
 
-    // FlashSprite coroutine that flashes the sprite by changing its color to each color in the _FlashColors array
-    protected virtual IEnumerator FlashSprite(float flashTime)
+    protected virtual IEnumerator FlashSprite(float flashTime) // Coroutine to flash the sprite colors
     {
-        for (int i = 0; i < _FlashColors.Length; i++)
+        for (int i = 0; i < _FlashColors.Length; i++) // Loop through each color in the flash colors array
         {
-            _spriteRenderer.material.color = _FlashColors[i];
-            yield return new WaitForSeconds(flashTime);
+            _spriteRenderer.material.color = _FlashColors[i]; // Change the sprite color to the current flash color
+            yield return new WaitForSeconds(flashTime); // Wait for the specified flash time before changing to the next color
         }
     }
 }

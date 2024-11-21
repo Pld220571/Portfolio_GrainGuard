@@ -10,10 +10,9 @@ public class EnemyHealth : Health
         Gooper
     }
 
-
-    private Spawner spawner;
-    private Punten punten;
-    private MonoBehaviour _Shooter;
+    private Spawner _spawner;
+    private Punten _points;
+    private MonoBehaviour _shooter; // Reference to the shooter, which could be a player or another entity that dealt damage
 
     [Header("Audio")]
     [SerializeField] private DeathSoundType _DeathSoundType;
@@ -22,14 +21,14 @@ public class EnemyHealth : Health
     private void Awake()
     {
         base.Start();
-        spawner = FindObjectOfType<Spawner>();
-        punten = FindObjectOfType<Punten>();
+        _spawner = FindObjectOfType<Spawner>();
+        _points = FindObjectOfType<Punten>();
         _audioManager = FindObjectOfType<AudioManager>();
     }
 
-    public void SetShooter(MonoBehaviour shooter)
+    public void SetShooter(MonoBehaviour shooter) // Method to set the shooter reference, allowing the enemy to know who caused its death
     {
-        _Shooter = shooter;
+        _shooter = shooter;
     }
 
     protected override void CheckHealth()
@@ -40,8 +39,8 @@ public class EnemyHealth : Health
     protected override void Kill()
     {
         if (!died)
-        {
-            spawner.EnemyDestroyed();
+        { 
+            _spawner.EnemyDestroyed(); // Notify the spawner that an enemy has been destroyed
             base.Kill();
 
             switch (_DeathSoundType)
@@ -62,29 +61,27 @@ public class EnemyHealth : Health
         }
     }
 
-    protected void GiveXP(int amount)
-    {
-        // Notify the shooter tower
-        if (_Shooter != null)
+    protected void GiveXP(int amount) // Method to give experience points to the shooter if they are valid
+    {   
+        if (_shooter != null) // Check if there is a shooter assigned
         {
-            BuildingXP buildingXP = _Shooter.GetComponent<BuildingXP>();
-            if (buildingXP != null)
+            BuildingXP buildingXP = _shooter.GetComponent<BuildingXP>(); // Attempt to get the BuildingXP component from the shooter
+
+            if (buildingXP != null) // If the shooter has a BuildingXP component, grant the experience points
             {
-                buildingXP.GainXP(amount); // Adjust XP value as needed
+                buildingXP.GainXP(amount);
             }
         }
     }
 
-    // Method to increase gold
-    protected virtual void GiveGold(int amount)
+    protected virtual void GiveGold(int amount) // Method to give gold to the player or relevant entity
     {
-        punten.GainGold(amount);
+        _points.GainGold(amount); // Increases the gold amount in the Punten component
     }
 
-    // Method to increase health
     public void IncreaseHealth(int amount)
     {
-        ChangeMaxHealth(amount);
-        ChangeHealth(amount);
+        ChangeMaxHealth(amount); // Adjusts the maximum health of the enemy
+        ChangeHealth(amount); // Also restores the current health by the same amount
     }
 }

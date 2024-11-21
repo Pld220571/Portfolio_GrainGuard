@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -11,24 +12,24 @@ public class Tanky : MonoBehaviour
 
     #region Variables
     [Header("Components and Objects")]
-    [HideInInspector] public GameObject _townHall; // The game object that the bear is moving towards if no towers are in range.
+    [HideInInspector] public GameObject TownHall;
     private Animator _animator;
-    private Spawner _spawner; // The spawner game object that spawned the bear.
-    private PauseHandler _pauseHandler; // The pause handler game object that controls the game's pause state.
-    public int gainGold; // The amount of gold earned when this enemy is destroyed.
-    public int gainXP; // The amount of XP earned when this enemy is destroyed.
+    private Spawner _spawner;
+    private PauseHandler _pauseHandler;
+    public int GainGold; // Amount of gold gained
+    public int GainXP; // Amount of experience gained
 
     [Header("Tower Detection")]
-    [SerializeField] private float _MaxDistance; // The maximum distance within which the bear can detect towers.
+    [SerializeField] private float _MaxDistance;
 
     [Header("Movement")]
     [SerializeField] private float _MovementSpeed;
     private Transform _currentTarget;
 
     [Header("Attack")]
-    [SerializeField] private float _StoppingDistance; // The distance at which the bear stops moving and starts attacking.
-    [SerializeField] private float _AdditionalStoppingDistance;
-    [SerializeField] private float _EnemyDamage; // The damage dealt to the target when attacked.
+    [SerializeField] private float _StoppingDistance; // Distance at which the Tanky stops moving towards the target
+    [SerializeField] private float _AdditionalStoppingDistance; // Additional distance to consider for stopping
+    [SerializeField] private float _EnemyDamage;
     [SerializeField] private float _AnimationSpeed;
     [SerializeField] private TankyAttackType _TankyAttackType;
     private AudioManager _audioManager;
@@ -36,9 +37,9 @@ public class Tanky : MonoBehaviour
 
     private void Start()
     {
-        _townHall = GameObject.FindGameObjectWithTag("TownHall");
+        TownHall = GameObject.FindGameObjectWithTag("TownHall");
         _animator = GetComponent<Animator>();
-        _animator.SetFloat("animationSpeed", _AnimationSpeed); // Sets the animation speed.
+        _animator.SetFloat("animationSpeed", _AnimationSpeed); // Set the animator's speed parameter based on _AnimationSpeed
         _spawner = FindObjectOfType<Spawner>();
         _pauseHandler = FindAnyObjectByType<PauseHandler>();
         _audioManager = FindObjectOfType<AudioManager>();
@@ -55,38 +56,35 @@ public class Tanky : MonoBehaviour
         {
             FindClosestTower();
             MoveToTarget();
-
-            // Set the animator's direction based on the enemy's movement direction
-            float direction = GetDirection();
-            _animator.SetFloat("direction", direction);
+            float direction = GetDirection(); // Get the direction towards the target
+            _animator.SetFloat("direction", direction); // Set the animator's direction parameter based on the calculated direction
         }
-
-        //Debug.Log(_currentTarget.name);
     }
 
     private void FindClosestTower()
     {
-        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, _MaxDistance); // Uses a physics overlap circle to find all colliders within the detection range.
-        TowerCheck closestTower = null;
-        float closestDistance = Mathf.Infinity;
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, _MaxDistance);
+        TowerCheck closestTower = null; // Variable to hold the closest tower found
+        float closestDistance = Mathf.Infinity; // Initialize closest distance to infinity
 
-        // Loops through the colliders and finds the closest tower with a TowerCheck component.
         foreach (var collider in hitColliders)
         {
             TowerCheck towerCheck = collider.GetComponentInChildren<TowerCheck>();
+
             if (towerCheck != null)
             {
                 float distanceToTower = Vector2.Distance(transform.position, collider.transform.position);
-                if (distanceToTower < closestDistance)
+
+                if (distanceToTower < closestDistance) // If this tower is closer than the previous closest
                 {
-                    closestDistance = distanceToTower;
-                    closestTower = towerCheck;
+                    closestDistance = distanceToTower; // Update closest distance
+                    closestTower = towerCheck; // Update closest tower
                 }
             }
         }
+
         if (closestTower != null)
         {
-            // Updates the _currentTarget variable with the closest tower.
             _currentTarget = closestTower.transform;
         }
     }
@@ -95,22 +93,20 @@ public class Tanky : MonoBehaviour
     {
         if (_currentTarget == null)
         {
-            _currentTarget = _townHall.transform;
+            _currentTarget = TownHall.transform;
         }
 
-        float currentDistanceToTarget = Vector3.Distance(_currentTarget.GetComponentInParent<Collider2D>().bounds.center, transform.position); // Calculate the distance to the TownHall.
+        float currentDistanceToTarget = Vector3.Distance(_currentTarget.GetComponentInParent<Collider2D>().bounds.center, transform.position);
         currentDistanceToTarget -= _AdditionalStoppingDistance;
-        Debug.Log(currentDistanceToTarget);
 
         if (currentDistanceToTarget >= _StoppingDistance)
         {
             transform.position = Vector2.MoveTowards(this.transform.position, _currentTarget.position, _MovementSpeed * Time.deltaTime);
-            _animator.SetBool("canAttack", false);
+            _animator.SetBool("canAttack", false); // Set animator to not attack
         }
         else
         {
-            // If within stopping distance, it starts attacking the TownHall
-            _animator.SetBool("canAttack", true);
+            _animator.SetBool("canAttack", true); // Set animator to attack
         }
     }
 
@@ -120,12 +116,14 @@ public class Tanky : MonoBehaviour
         {
             if (_currentTarget != null)
             {
-                Health health = _currentTarget.GetComponentInChildren<Health>();
-                if (health == null)
+                Health health = _currentTarget.GetComponentInChildren<Health>(); // Get the Health component from the target
+
+                if (health == null) // If no Health component found in children
                 {
-                    health = _currentTarget.GetComponentInParent<Health>();
+                    health = _currentTarget.GetComponentInParent<Health>(); // Try to get it from the parent
                 }
-                health.ChangeHealth(-_EnemyDamage);
+
+                health.ChangeHealth(-_EnemyDamage); // Apply damage to the target
             }
 
             switch (_TankyAttackType)
@@ -138,49 +136,30 @@ public class Tanky : MonoBehaviour
                     break;
             }
         }
-
-        //// Play the corresponding attack sound effect based on the enemy type
-        //if (enemyType == "Bear")
-        //{
-        //    _audioManager.PlaySFX(_audioManager.BearChopSFX, 1f);
-        //}
-        //else if (enemyType == "Gooper")
-        //{
-        //    _audioManager.PlaySFX(_audioManager.GooperAttackSFX, 1f);
-        //}
     }
 
-    private float GetDirection() // Calculates the bear's movement direction
+    private float GetDirection() // Method to get the direction towards the target
     {
-        Vector2 direction;
+        Vector2 direction; // Variable to hold the direction vector
 
-        // Check if the enemy is targeting a tower
         if (_currentTarget != null)
         {
-            // If a target is set, it calculates the vector from the bear to the target.
             direction = (_currentTarget.transform.position - transform.position).normalized;
         }
         else
         {
-            // If no target is set, it calculates the vector from the bear to the town hall.
-            direction = (_townHall.transform.position - transform.position).normalized;
+            direction = (TownHall.transform.position - transform.position).normalized;
         }
 
-        // Converts the vector to an angle in degrees and returns it.
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        return angle;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg; // Calculate the angle in degrees from the direction vector
+        return angle; // Return the calculated angle
     }
-    //#if UNITY_EDITOR
+
     void OnDrawGizmos()
     {
-        // Draw detection range gizmo
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, _MaxDistance);
-
-        // Draw stopping distance gizmo
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, _StoppingDistance);
     }
-//}
-//#endif
 }
