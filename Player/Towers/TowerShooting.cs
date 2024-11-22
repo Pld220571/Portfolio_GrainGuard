@@ -1,10 +1,11 @@
+using System.Diagnostics;
 using UnityEngine;
 
 public class TowerShooting : MonoBehaviour
 {
     [Header("Tower Info")]
-    [SerializeField] private float _MinDistance;
-    [SerializeField] private int currentUpgradeLevel = 0;
+    [SerializeField] private float _MinDistance; // Minimum distance to detect enemies
+    [SerializeField] private int _CurrentUpgradeLevel = 0;
 
     [Header("Shoot Enemy")]
     [SerializeField] private GameObject _ProjectilePrefab;
@@ -13,32 +14,32 @@ public class TowerShooting : MonoBehaviour
     [SerializeField] private float _BaseProjectileCooldown;
     [SerializeField] private float _ProjectileCooldown;
 
-    private float lastShootTime;
+    private float _lastShootTime; // Timestamp of the last shot fired
 
     [Header("Tower sprites")]
-    [SerializeField] private SpriteRenderer towerSprites;
-    [SerializeField] private SpriteRenderer rankSprites;
-    [SerializeField] private Sprite[] baseSprites;
-    [SerializeField] private Sprite[] upgrade1Sprites;
-    [SerializeField] private Sprite[] upgrade2Sprites;
-    private Sprite rank1Sprites;
-    [SerializeField] private Sprite rank2Sprites;
-    [SerializeField] private Sprite rank3Sprites;
+    [SerializeField] private SpriteRenderer _TowerSprites;
+    [SerializeField] private SpriteRenderer _RankSprites;
+    [SerializeField] private Sprite[] _BaseSprites;
+    [SerializeField] private Sprite[] _Upgrade1Sprites;
+    [SerializeField] private Sprite[] _Upgrade2Sprites;
+    [SerializeField] private Sprite _Rank2Sprites;
+    [SerializeField] private Sprite _Rank3Sprites;
 
-    private AudioManager audioManager;
-    private PauseHandler pauseHandler;
-    private TownhallUpgrade townhallUpgrades;
+    private Sprite _rank1Sprites; // Placeholder for rank 1 sprites
+    private AudioManager _audioManager;
+    private PauseHandler _pauseHandler;
+    private TownhallUpgrade _townhallUpgrades;
 
     private void Start()
     {
-        audioManager = FindObjectOfType<AudioManager>();
-        pauseHandler = FindObjectOfType<PauseHandler>();
-        townhallUpgrades = FindObjectOfType<TownhallUpgrade>();
+        _audioManager = FindObjectOfType<AudioManager>();
+        _pauseHandler = FindObjectOfType<PauseHandler>();
+        _townhallUpgrades = FindObjectOfType<TownhallUpgrade>();
     }
 
     private void Update()
     {
-        if (!pauseHandler.gameOver)
+        if (!_pauseHandler.gameOver)
         {
             EnemyHealth closestEnemy = LocateClosestEnemy();
             ShootClosestEnemy(closestEnemy);
@@ -49,46 +50,46 @@ public class TowerShooting : MonoBehaviour
     {
         if (closestEnemy != null)
         {
-            if (Time.time > lastShootTime + _ProjectileCooldown)
+            if (Time.time > _lastShootTime + _ProjectileCooldown)
             {
-                CalculateCooldown();
-                lastShootTime = Time.time;
+                CalculateCooldown(); // Update the projectile cooldown based on upgrades
+                _lastShootTime = Time.time; // Record the time of the shot
                 Vector3 direction = (closestEnemy.transform.position - transform.position).normalized;
                 GameObject projectile = Instantiate(_ProjectilePrefab, _ProjectileExit.position, _ProjectileExit.rotation);
                 Rigidbody2D rb = projectile.GetComponent<Rigidbody2D>();
                 rb.AddForce(direction * _ProjectileSpeed, ForceMode2D.Impulse);
+                BaseProjectile baseProjectile = projectile.GetComponent<BaseProjectile>(); // Set the shooter for the projectile if it has a BaseProjectile component
 
-                // Set the reference to this tower on the projectile
-                BaseProjectile baseProjectile = projectile.GetComponent<BaseProjectile>();
                 if (baseProjectile != null)
                 {
                     baseProjectile.SetShooter(this);
                 }
 
-                UpdateTowerSprite(direction);
-                audioManager.PlaySFX(audioManager.towerShootSFX, 1f);
+                UpdateTowerSprite(direction); // Update the tower sprite based on the direction of the shot
+                _audioManager.PlaySFX(_audioManager.towerShootSFX, 1f);
             }
         }
     }
 
     private EnemyHealth LocateClosestEnemy()
     {
-        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, _MinDistance);
-        EnemyHealth closestEnemy = null;
-        float closestDistance = Mathf.Infinity;
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, _MinDistance); // Use a circle overlap to detect enemies within the minimum distance specified
+        EnemyHealth closestEnemy = null; // Variable to store the closest enemy found
+        float closestDistance = Mathf.Infinity; // Initialize closest distance with infinity for comparison
 
-        // Iterate through the colliders to find the closest enemy with an EnemyHealth component
-        foreach (var collider in hitColliders)
+        foreach (var collider in hitColliders) // Loop through detected colliders to find the closest enemy
         {
-            EnemyHealth enemyHealth = collider.GetComponent<EnemyHealth>();
+            EnemyHealth enemyHealth = collider.GetComponent<EnemyHealth>(); // Get the EnemyHealth and Enemy components from the collider
             Enemy enemy = collider.GetComponent<Enemy>();
-            if (enemyHealth != null && enemy.movementType == Enemy.MovementType.Land)
+            
+            if (enemyHealth != null && enemy.movementType == Enemy.MovementType.Land) // Check if the collider is an enemy and if it's of the land movement type
             {
                 float distanceToEnemy = Vector2.Distance(transform.position, collider.transform.position);
-                if (distanceToEnemy < closestDistance)
+
+                if (distanceToEnemy < closestDistance) // If this enemy is closer than the previously found closest enemy, update closestEnemy
                 {
-                    closestDistance = distanceToEnemy;
-                    closestEnemy = enemyHealth;
+                    closestDistance = distanceToEnemy; // Update closest distance
+                    closestEnemy = enemyHealth; // Update closest enemy reference
                 }
             }
         }
@@ -96,73 +97,68 @@ public class TowerShooting : MonoBehaviour
         return closestEnemy;
     }
 
-    // Function to draw a gizmo representing the enemy's range
-    void OnDrawGizmosSelected()
+    void OnDrawGizmosSelected() // Draw a visual representation of the detection range in the editor
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, _MinDistance);
+        Gizmos.DrawWireSphere(transform.position, _MinDistance); // Draw a wire sphere to represent the detection range
     }
-
-    private void CalculateCooldown()
+    
+    private void CalculateCooldown() // Calculate the projectile cooldown based on upgrades
     {
-        _ProjectileCooldown = _BaseProjectileCooldown * townhallUpgrades.cooldownMultiplier;
-        Debug.Log("Cooldowj: " + _ProjectileCooldown);
+        _ProjectileCooldown = _BaseProjectileCooldown * _townhallUpgrades.cooldownMultiplier; // Update the projectile cooldown based on the base cooldown and townhall upgrade multiplier
     }
 
     public void UpgradeTower()
     {
-        currentUpgradeLevel++;
+        _CurrentUpgradeLevel++;
 
-        switch (currentUpgradeLevel)
+        switch (_CurrentUpgradeLevel)
         {
             case 0:
-                rankSprites.sprite = rank1Sprites;
+                _RankSprites.sprite = _rank1Sprites;
                 break;
             case 1:
-                rankSprites.sprite = rank2Sprites;
+                _RankSprites.sprite = _Rank2Sprites;
                 break;
             case 2:
-                rankSprites.sprite = rank3Sprites;
+                _RankSprites.sprite = _Rank3Sprites;
                 break;
             default:
-                rankSprites.sprite = rank1Sprites;
+                _RankSprites.sprite = _rank1Sprites;
                 break;
         }
     }
 
-    public void UpdateTowerSprite(Vector3 directions)
+    public void UpdateTowerSprite(Vector3 directions) // Update the tower sprite based on the shooting direction and upgrade level
     {
-        Sprite[] sprites;
-        switch (currentUpgradeLevel)
+        Sprite[] sprites; // Array to hold the appropriate sprites based on the upgrade level
+
+        switch (_CurrentUpgradeLevel) // Determine which sprite array to use based on the current upgrade level
         {
             case 0:
-                sprites = baseSprites;
+                sprites = _BaseSprites;
                 break;
             case 1:
-                sprites = upgrade1Sprites;
+                sprites = _Upgrade1Sprites;
                 break;
             case 2:
-                sprites = upgrade2Sprites;
+                sprites = _Upgrade2Sprites;
                 break;
             default:
-                sprites = baseSprites;
+                sprites = _BaseSprites;
                 break;
         }
+        
+        float angle = Mathf.Atan2(directions.y, directions.x) * Mathf.Rad2Deg; // Calculate the angle based on the direction vector
+        
+        if (angle < 0) 
+            angle += 360; // Normalize angle to be within 0-360 degrees
 
-        // Calculate angle in radians
-        float angle = Mathf.Atan2(directions.y, directions.x) * Mathf.Rad2Deg;
+        int spriteIndex = Mathf.RoundToInt(angle / 45) % 8; // Determine the sprite index based on the angle (8 directions)
 
-        // Normalize angle to be between 0 and 360
-        if (angle < 0)
-            angle += 360;
-
-        // Determine which sprite to use based on angle
-        int spriteIndex = Mathf.RoundToInt(angle / 45) % 8; // 360 degrees divided into 8 directions
-
-        // Update the sprite
-        if (spriteIndex >= 0 && spriteIndex < sprites.Length)
+        if (spriteIndex >= 0 && spriteIndex < sprites.Length) // Update the tower sprite if the index is valid
         {
-            towerSprites.sprite = sprites[spriteIndex];
+            _TowerSprites.sprite = sprites[spriteIndex]; // Set the sprite based on the calculated index
         }
     }
 }
