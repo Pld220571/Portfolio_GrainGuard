@@ -13,8 +13,12 @@ public class Tanky : MonoBehaviour
     #region Variables
     [Header("Components and Objects")]
     [HideInInspector] public GameObject TownHall;
-    public int GainGold; // Amount of gold gained
-    public int GainXP; // Amount of experience gained
+
+    // Amount of gold gained
+    public int GainGold;
+
+    // Amount of experience gained
+    public int GainXP;
 
     private Animator _animator;
     private Spawner _spawner;
@@ -28,8 +32,11 @@ public class Tanky : MonoBehaviour
     private Transform _currentTarget;
 
     [Header("Attack")]
-    [SerializeField] private float _StoppingDistance; // Distance at which the Tanky stops moving towards the target
-    [SerializeField] private float _AdditionalStoppingDistance; // Additional distance to consider for stopping
+    // Distance at which the Tanky stops moving towards the target
+    [SerializeField] private float _StoppingDistance;
+
+    // Additional distance to consider for stopping
+    [SerializeField] private float _AdditionalStoppingDistance;
     [SerializeField] private float _EnemyDamage;
     [SerializeField] private float _AnimationSpeed;
     [SerializeField] private TankyAttackType _TankyAttackType;
@@ -40,7 +47,9 @@ public class Tanky : MonoBehaviour
     {
         TownHall = GameObject.FindGameObjectWithTag("TownHall");
         _animator = GetComponent<Animator>();
-        _animator.SetFloat("animationSpeed", _AnimationSpeed); // Set the animator's speed parameter based on _AnimationSpeed
+
+        // Set the animator's speed parameter based on _AnimationSpeed
+        _animator.SetFloat("animationSpeed", _AnimationSpeed);
         _spawner = FindObjectOfType<Spawner>();
         _pauseHandler = FindAnyObjectByType<PauseHandler>();
         _audioManager = FindObjectOfType<AudioManager>();
@@ -57,16 +66,24 @@ public class Tanky : MonoBehaviour
         {
             FindClosestTower();
             MoveToTarget();
-            float direction = GetDirection(); // Get the direction towards the target
-            _animator.SetFloat("direction", direction); // Set the animator's direction parameter based on the calculated direction
+
+            // Get the direction towards the target
+            float direction = GetDirection();
+
+            // Set the animator's direction parameter based on the calculated direction
+            _animator.SetFloat("direction", direction);
         }
     }
 
     private void FindClosestTower()
     {
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, _MaxDistance);
-        TowerCheck closestTower = null; // Variable to hold the closest tower found
-        float closestDistance = Mathf.Infinity; // Initialize closest distance to infinity
+
+        // Variable to hold the closest tower found
+        TowerCheck closestTower = null;
+
+        // Initialize closest distance to infinity
+        float closestDistance = Mathf.Infinity;
 
         foreach (var collider in hitColliders)
         {
@@ -76,10 +93,14 @@ public class Tanky : MonoBehaviour
             {
                 float distanceToTower = Vector2.Distance(transform.position, collider.transform.position);
 
-                if (distanceToTower < closestDistance) // If this tower is closer than the previous closest
+                // If this tower is closer than the previous closest
+                if (distanceToTower < closestDistance)
                 {
-                    closestDistance = distanceToTower; // Update closest distance
-                    closestTower = towerCheck; // Update closest tower
+                    // Update closest distance
+                    closestDistance = distanceToTower;
+
+                    // Update closest tower
+                    closestTower = towerCheck;
                 }
             }
         }
@@ -103,11 +124,14 @@ public class Tanky : MonoBehaviour
         if (currentDistanceToTarget >= _StoppingDistance)
         {
             transform.position = Vector2.MoveTowards(this.transform.position, _currentTarget.position, _MovementSpeed * Time.deltaTime);
-            _animator.SetBool("canAttack", false); // Set animator to not attack
+            
+            // Set animator to not attack
+            _animator.SetBool("canAttack", false);
         }
         else
         {
-            _animator.SetBool("canAttack", true); // Set animator to attack
+            // Set animator to attack
+            _animator.SetBool("canAttack", true);
         }
     }
 
@@ -117,14 +141,18 @@ public class Tanky : MonoBehaviour
         {
             if (_currentTarget != null)
             {
-                Health health = _currentTarget.GetComponentInChildren<Health>(); // Get the Health component from the target
+                // Get the Health component from the target
+                Health health = _currentTarget.GetComponentInChildren<Health>();
 
-                if (health == null) // If no Health component found in children
+                // If no Health component found in children
+                if (health == null)
                 {
-                    health = _currentTarget.GetComponentInParent<Health>(); // Try to get it from the parent
+                    // Try to get it from the parent
+                    health = _currentTarget.GetComponentInParent<Health>();
                 }
 
-                health.ChangeHealth(-_EnemyDamage); // Apply damage to the target
+                // Apply damage to the target
+                health.ChangeHealth(-_EnemyDamage);
             }
 
             switch (_TankyAttackType)
@@ -139,9 +167,11 @@ public class Tanky : MonoBehaviour
         }
     }
 
-    private float GetDirection() // Method to get the direction towards the target
+    // Method to get the direction towards the target
+    private float GetDirection()
     {
-        Vector2 direction; // Variable to hold the direction vector
+        // Variable to hold the direction vector
+        Vector2 direction;
 
         if (_currentTarget != null)
         {
@@ -152,8 +182,11 @@ public class Tanky : MonoBehaviour
             direction = (TownHall.transform.position - transform.position).normalized;
         }
 
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg; // Calculate the angle in degrees from the direction vector
-        return angle; // Return the calculated angle
+        // Calculate the angle in degrees from the direction vector
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+
+        // Return the calculated angle
+        return angle;
     }
 
     void OnDrawGizmos()
@@ -163,4 +196,3 @@ public class Tanky : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, _StoppingDistance);
     }
-}
