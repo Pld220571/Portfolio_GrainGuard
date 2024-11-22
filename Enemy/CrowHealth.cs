@@ -13,10 +13,15 @@ public class CrowHealth : EnemyHealth
     }
 
     protected override void Kill()
-    {   
-        Instantiate(_PrefabFeatherParticle, transform.position, Quaternion.identity); // Create a feather particle effect at the Crow's position upon death
+    {
+        // Create a feather particle effect at the Crow's position upon death
+        Instantiate(_PrefabFeatherParticle, transform.position, Quaternion.identity);
         base.Kill();
-        GiveGold(_crow.GainGold); // Give gold to the player
-        GiveXP(_crow.GainXP); // Give experience points to the player
+
+        // Give gold to the player
+        GiveGold(_crow.GainGold);
+
+        // Give experience points to the player
+        GiveXP(_crow.GainXP);
     }
 }
