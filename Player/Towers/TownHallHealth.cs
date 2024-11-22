@@ -4,10 +4,11 @@ using UnityEngine;
 
 public class TownHallHealth : Health
 {
-    private PauseHandler _pauseHandler;
     [SerializeField] private ProgressBar _HealthBar;
-    [SerializeField] private SpriteRenderer _spriteRenderer1;
-    [SerializeField] private SpriteRenderer _spriteRenderer2;
+    [SerializeField] private SpriteRenderer _SpriteRenderer1;
+    [SerializeField] private SpriteRenderer _SpriteRenderer2;
+
+    private PauseHandler _pauseHandler;
 
     public override void Start()
     {
@@ -15,13 +16,13 @@ public class TownHallHealth : Health
         _pauseHandler = FindObjectOfType<PauseHandler>();
     }
 
-    public override void ChangeHealth(float amount)
+    public override void ChangeHealth(float amount) // Update health and the health bar
     {
         base.ChangeHealth(amount);
-        _HealthBar.ChangeValue(base._CurrentHealth);
+        _HealthBar.ChangeValue(base._CurrentHealth); // Update the health bar value based on current health
     }
 
-    public override void ChangeMaxHealth(float amount)
+    public override void ChangeMaxHealth(float amount) // Update the maximum health if needed
     {
         base.ChangeMaxHealth(amount);
     }
@@ -41,13 +42,13 @@ public class TownHallHealth : Health
     {
         base.Hit();
     }
-
-    protected override IEnumerator FlashSprite(float flashTime)
+    
+    protected override IEnumerator FlashSprite(float flashTime) // Override the FlashSprite method to visually indicate damage
     {
-        for (int i = 0; i < _FlashColors.Length; i++)
+        for (int i = 0; i < _FlashColors.Length; i++) // Loop through the flash colors and apply them to the sprite renderers
         {
-            _spriteRenderer1.material.color = _FlashColors[i];
-            _spriteRenderer2.material.color = _FlashColors[i];
+            _SpriteRenderer1.material.color = _FlashColors[i];
+            _SpriteRenderer2.material.color = _FlashColors[i];
             yield return new WaitForSeconds(flashTime);
         }
     }
