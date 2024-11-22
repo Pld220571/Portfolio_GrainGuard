@@ -4,18 +4,21 @@ using UnityEngine;
 public class Bunny : MonoBehaviour
 {
     #region variables
+    [HideInInspector] public GameObject TownHall;
     public float Speed;
-    [SerializeField] private int _EnemyDamage;
     public int GainGold; // Amount of gold gained when the Bunny is killed
     public int GainXP; // Amount of experience gained when the Bunny is killed
-    [HideInInspector] public GameObject TownHall;
+
+    [SerializeField] private int _EnemyDamage;
+    
     private Animator _animator;
     private Spawner _spawner;
     private PauseHandler _pauseHandler;
     private TowerCheck _target; // The closest tower that the Bunny is targeting
 
-    private bool _isDead;
     [SerializeField] private GameObject _PrefabExplosion;
+
+    private bool _isDead;
     private AudioManager _audioManager;
 
     #endregion

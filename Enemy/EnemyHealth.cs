@@ -16,6 +16,7 @@ public class EnemyHealth : Health
 
     [Header("Audio")]
     [SerializeField] private DeathSoundType _DeathSoundType;
+
     private AudioManager _audioManager;
 
     private void Awake()

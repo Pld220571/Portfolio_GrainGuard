@@ -2,8 +2,9 @@ using UnityEngine;
 
 public class CrowHealth : EnemyHealth
 {
-    private Crow _crow;
     [SerializeField] private GameObject _PrefabFeatherParticle;
+
+    private Crow _crow;
 
     public override void Start()
     {

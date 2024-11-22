@@ -4,16 +4,18 @@ using UnityEngine;
 public class Crow : MonoBehaviour
 {
     public float Speed;
-    [SerializeField] private int _EnemyDamage;
     public int GainGold; // Amount of gold gained when the Crow is defeated
     public int GainXP; // Amount of experience gained when the Crow is defeated
+
+    [SerializeField] private int _EnemyDamage;
+    [SerializeField] private GameObject _PrefabFeatherParticle;
+
     private CropsCheck _grains; // Reference to the closest crops
     private TownHallCheck _townHall;
     private Animator _animator;
     private Spawner _spawner;
     private PauseHandler _pauseHandler;
     private bool _isDead;
-    [SerializeField] private GameObject _PrefabFeatherParticle;
 
     private void Start()
     {

@@ -13,11 +13,12 @@ public class Tanky : MonoBehaviour
     #region Variables
     [Header("Components and Objects")]
     [HideInInspector] public GameObject TownHall;
+    public int GainGold; // Amount of gold gained
+    public int GainXP; // Amount of experience gained
+
     private Animator _animator;
     private Spawner _spawner;
     private PauseHandler _pauseHandler;
-    public int GainGold; // Amount of gold gained
-    public int GainXP; // Amount of experience gained
 
     [Header("Tower Detection")]
     [SerializeField] private float _MaxDistance;

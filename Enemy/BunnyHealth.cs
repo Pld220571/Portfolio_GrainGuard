@@ -2,8 +2,9 @@ using UnityEngine;
 
 public class BunnyHealth : EnemyHealth
 {
-    private Bunny _bunny;
     [SerializeField] private GameObject _PrefabBloodEffect;
+
+    private Bunny _bunny;
 
     public override void Start()
     {
