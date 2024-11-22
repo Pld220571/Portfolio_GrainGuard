@@ -2,8 +2,9 @@ using UnityEngine;
 
 public class BugHealth : EnemyHealth
 {
-    private Tanky _tanky;
     [SerializeField] private GameObject _PrefabBugSplash;
+
+    private Tanky _tanky;
 
     public override void Start()
     {
