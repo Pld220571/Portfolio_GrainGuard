@@ -2,8 +2,9 @@ using UnityEngine;
 
 public class BearHealth : EnemyHealth
 {
-    private Tanky _tanky;
     [SerializeField] private GameObject _PrefabBloodEffect;
+
+    private Tanky _tanky;
 
     public override void Start()
     {
