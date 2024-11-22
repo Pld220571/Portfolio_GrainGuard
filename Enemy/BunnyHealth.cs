@@ -14,9 +14,14 @@ public class BunnyHealth : EnemyHealth
 
     protected override void Kill()
     {
-        Instantiate(_PrefabBloodEffect, transform.position, Quaternion.identity); // Create a blood effect at the Bunny's position upon death
+        // Create a blood effect at the Bunny's position upon death
+        Instantiate(_PrefabBloodEffect, transform.position, Quaternion.identity);
         base.Kill();
-        GiveGold(_bunny.GainGold); // Give gold to the player
-        GiveXP(_bunny.GainXP); // Give experience points to the player
+
+        // Give gold to the player
+        GiveGold(_bunny.GainGold);
+
+        // Give experience points to the player
+        GiveXP(_bunny.GainXP);
     }
 }
