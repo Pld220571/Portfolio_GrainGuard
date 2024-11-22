@@ -3,7 +3,7 @@ using UnityEngine;
 public class Scarecrow : MonoBehaviour
 {
     #region Variables
-    [SerializeField] private float _MinDistance;
+    [SerializeField] private float _MinDistance; // Minimum distance from the scarecrow to detect enemies
     [SerializeField] private GameObject _ProjectilePrefab;
     [SerializeField] private Transform _ProjectileExit;
     [SerializeField] private float _ProjectileSpeed;
@@ -20,7 +20,7 @@ public class Scarecrow : MonoBehaviour
     {
         _townhallUpgrade = FindObjectOfType<TownhallUpgrade>();
         _animator = GetComponentInChildren<Animator>();
-        _animator.SetFloat("animarionSpeed", _AnimationSpeed);
+        _animator.SetFloat("animarionSpeed", _AnimationSpeed); // Set animation speed
         _audioManager = FindObjectOfType<AudioManager>();
     }
 
@@ -29,13 +29,13 @@ public class Scarecrow : MonoBehaviour
         if (_currentTarget == null)
         {
             LocateClosestEnemy();
-            _animator.SetInteger("scarecrowState", 0);
+            _animator.SetInteger("scarecrowState", 0); // Set scarecrow state to idle
 
             return;
         }
 
-        float shootingDirection = GetDirection();
-        _animator.SetFloat("direction", shootingDirection);
+        float shootingDirection = GetDirection(); // Calculate shooting direction
+        _animator.SetFloat("direction", shootingDirection); // Set animator direction and state
         _animator.SetInteger("scarecrowState", 1);
     }
 
@@ -47,25 +47,25 @@ public class Scarecrow : MonoBehaviour
 
         foreach (var collider in hitColliders)
         {
-            EnemyHealth enemyHealth = collider.GetComponent<EnemyHealth>();
+            EnemyHealth enemyHealth = collider.GetComponent<EnemyHealth>(); // Check if the collider has an EnemyHealth component
             Enemy enemy = collider.GetComponent<Enemy>();
 
-            if (enemyHealth != null && enemy.movementType == Enemy.MovementType.air)
+            if (enemyHealth != null && enemy.movementType == Enemy.MovementType.air) // Check if the enemy is an air enemy
             {
-                float distanceToTower = Vector2.Distance(transform.position, collider.transform.position);
-
-                if (distanceToTower < closestDistance)
+                float distanceToEnemy = Vector2.Distance(transform.position, collider.transform.position);
+                
+                if (distanceToEnemy < closestDistance) // Update closest enemy if this one is closer
                 {
-                    closestDistance = distanceToTower;
+                    closestDistance = distanceToEnemy;
                     closestEnemy = enemyHealth;
                 }
 
-                _currentTarget = closestEnemy;
+                _currentTarget = closestEnemy; // Set the current target to the closest enemy
             }
         }
     }
-
-    void OnDrawGizmosSelected()
+    
+    void OnDrawGizmosSelected() // Draw a gizmo to visualize the minimum distance
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, _MinDistance);
@@ -75,25 +75,25 @@ public class Scarecrow : MonoBehaviour
     {
         if (_currentTarget != null)
         {
-            Vector3 direction = (_currentTarget.transform.position - transform.position).normalized;
-            CooldownMultiplier();
-            GameObject projectile = Instantiate(_ProjectilePrefab, _ProjectileExit.position, _ProjectileExit.rotation);
+            Vector3 direction = (_currentTarget.transform.position - transform.position).normalized; // Calculate direction to the target
+            CooldownMultiplier(); // Apply cooldown multiplier to animation speed
+            GameObject projectile = Instantiate(_ProjectilePrefab, _ProjectileExit.position, _ProjectileExit.rotation); // Create a projectile
             Rigidbody2D rb = projectile.GetComponent<Rigidbody2D>();
             rb.AddForce(direction * _ProjectileSpeed, ForceMode2D.Impulse);
-            AntiAirProjectile proj = projectile.GetComponent<AntiAirProjectile>();
+            AntiAirProjectile proj = projectile.GetComponent<AntiAirProjectile>(); // Set the projectile's shooter
 
             if (proj != null)
             {
                 proj.SetShooter(this);
             }
 
-            float rot = Mathf.Atan2(-direction.y, -direction.x) * Mathf.Rad2Deg;
+            float rot = Mathf.Atan2(-direction.y, -direction.x) * Mathf.Rad2Deg; // Rotate the projectile to face the target
             rb.transform.rotation = Quaternion.Euler(0, 0, rot + 90);
             _audioManager.PlaySFX(_audioManager.scarecrowthrowSFX, 1f);
         }
     }
 
-    private float GetDirection()
+    private float GetDirection() // Calculate the direction to the target
     {
         Vector2 spriteDirection = (_currentTarget.transform.position - transform.position).normalized;
         float angle = Mathf.Atan2(spriteDirection.y, spriteDirection.x) * Mathf.Rad2Deg;
@@ -103,8 +103,7 @@ public class Scarecrow : MonoBehaviour
 
     private void CooldownMultiplier()
     {
-        _AnimationSpeed = 1f / _townhallUpgrade.cooldownMultiplier;
-
-        _animator.SetFloat("animarionSpeed", _AnimationSpeed);
+        _AnimationSpeed = 1f / _townhallUpgrade.cooldownMultiplier; // Calculate the new animation speed based on the cooldown multiplier from the townhall upgrade
+        _animator.SetFloat("animarionSpeed", _AnimationSpeed); // Update the animator's parameter to reflect the new animation speed
     }
 }
