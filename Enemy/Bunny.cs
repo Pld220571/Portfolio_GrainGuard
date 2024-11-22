@@ -6,15 +6,21 @@ public class Bunny : MonoBehaviour
     #region variables
     [HideInInspector] public GameObject TownHall;
     public float Speed;
-    public int GainGold; // Amount of gold gained when the Bunny is killed
-    public int GainXP; // Amount of experience gained when the Bunny is killed
+
+    // Amount of gold gained when the Bunny is killed
+    public int GainGold;
+
+    // Amount of experience gained when the Bunny is killed
+    public int GainXP;
 
     [SerializeField] private int _EnemyDamage;
     
     private Animator _animator;
     private Spawner _spawner;
     private PauseHandler _pauseHandler;
-    private TowerCheck _target; // The closest tower that the Bunny is targeting
+
+    // The closest tower that the Bunny is targeting
+    private TowerCheck _target;
 
     [SerializeField] private GameObject _PrefabExplosion;
 
@@ -36,30 +42,49 @@ public class Bunny : MonoBehaviour
     {
         if (!_pauseHandler.gameOver)
         {
-            FindClosestTower(); // Call to find the closest tower to target
-            MoveToTarget(); // Move the Bunny towards the target tower
-            float direction = GetDirection(); // Get the direction angle towards the target
-            _animator.SetFloat("direction", direction); // Update animator with the current direction
+            // Call to find the closest tower to target
+            FindClosestTower();
+
+            // Move the Bunny towards the target tower
+            MoveToTarget();
+
+            // Get the direction angle towards the target
+            float direction = GetDirection();
+
+            // Update animator with the current direction
+            _animator.SetFloat("direction", direction);
         }
     }
 
     public void FindClosestTower()
     {
-        float distanceToClosestBuilding = Mathf.Infinity; // Initialize to maximum possible distance
-        TowerCheck closestTower = null; // Variable to store the closest tower found
-        TowerCheck[] allTowers = GameObject.FindObjectsOfType<TowerCheck>(); // Get all TowerCheck objects in the scene
+        // Initialize to maximum possible distance
+        float distanceToClosestBuilding = Mathf.Infinity;
 
-        foreach (TowerCheck currentTower in allTowers)// Loop through all found towers to determine the closest one
+        // Variable to store the closest tower found
+        TowerCheck closestTower = null;
+
+        // Get all TowerCheck objects in the scene
+        TowerCheck[] allTowers = GameObject.FindObjectsOfType<TowerCheck>();
+
+        // Loop through all found towers to determine the closest one
+        foreach (TowerCheck currentTower in allTowers)
         {
-            float distanceToTower = (currentTower.transform.position - transform.position).sqrMagnitude; // Calculate squared distance
+            // Calculate squared distance
+            float distanceToTower = (currentTower.transform.position - transform.position).sqrMagnitude;
 
-            if (distanceToTower < distanceToClosestBuilding) // Check if this tower is closer than the previous closest
+            // Check if this tower is closer than the previous closest
+            if (distanceToTower < distanceToClosestBuilding)
             {
-                distanceToClosestBuilding = distanceToTower; // Update the closest distance
-                closestTower = currentTower; // Update the closest tower reference
+                // Update the closest distance
+                distanceToClosestBuilding = distanceToTower;
+
+                // Update the closest tower reference
+                closestTower = currentTower;
             }
 
-            _target = closestTower; // Set the target to the closest tower found
+            // Set the target to the closest tower found
+            _target = closestTower;
         }
     }
 
@@ -73,18 +98,25 @@ public class Bunny : MonoBehaviour
 
     private float GetDirection()
     {
-        Vector2 direction; // Variable to hold the direction vector
+        // Variable to hold the direction vector
+        Vector2 direction;
+
         if (_target != null)
         {
-            direction = (_target.transform.position - transform.position).normalized; // Calculate direction towards the tower, if it exists
+            // Calculate direction towards the tower, if it exists
+            direction = (_target.transform.position - transform.position).normalized;
         }
         else
         {
-            direction = (TownHall.transform.position - transform.position).normalized; // If there is no tower, move towards the TownHall
+            // If there is no tower, move towards the TownHall
+            direction = (TownHall.transform.position - transform.position).normalized;
         }
 
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg; // Convert direction to angle in degrees
-        return angle; // Return the angle for animator
+        // Convert direction to angle in degrees
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+
+        // Return the angle for animator
+        return angle;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -96,31 +128,46 @@ public class Bunny : MonoBehaviour
 
         if (collision.CompareTag("Tower"))
         {
-            Instantiate(_PrefabExplosion, transform.position, Quaternion.identity); // Create an explosion effect at the Bunny's position
+            // Create an explosion effect at the Bunny's position
+            Instantiate(_PrefabExplosion, transform.position, Quaternion.identity);
             _audioManager.PlaySFX(_audioManager.explosionSFX, 1);
-            collision.GetComponent<TowerHealth>().ChangeHealth(-_EnemyDamage); // Apply damage to the Tower's health component
+
+            // Apply damage to the Tower's health component
+            collision.GetComponent<TowerHealth>().ChangeHealth(-_EnemyDamage);
             _isDead = true;
-            _spawner.EnemyDestroyed(); // Notify the spawner that this enemy is destroyed
+
+            // Notify the spawner that this enemy is destroyed
+            _spawner.EnemyDestroyed();
             Destroy(gameObject);
         }
 
         if (collision.CompareTag("Crops"))
         {
-            Instantiate(_PrefabExplosion, transform.position, Quaternion.identity); // Create an explosion effect
-            _audioManager.PlaySFX(_audioManager.explosionSFX, 1); // Play sound effect
-            collision.GetComponent<CropsHealth>().ChangeHealth(-_EnemyDamage); // Damage the crops
-            _isDead = true; // Mark the Bunny as dead
-            _spawner.EnemyDestroyed(); // Notify the spawner
-            Destroy(gameObject); // Remove the Bunny
+            // Create an explosion effect
+            Instantiate(_PrefabExplosion, transform.position, Quaternion.identity);
+            _audioManager.PlaySFX(_audioManager.explosionSFX, 1);
+
+            // Damage the crops
+            collision.GetComponent<CropsHealth>().ChangeHealth(-_EnemyDamage);
+            _isDead = true;
+
+            // Notify the spawner
+            _spawner.EnemyDestroyed();
+            Destroy(gameObject);
         }
 
         if (collision.CompareTag("TownHall"))
         {
-            Instantiate(_PrefabExplosion, transform.position, Quaternion.identity); // Create an explosion effect at the Bunny's position
+            // Create an explosion effect at the Bunny's position
+            Instantiate(_PrefabExplosion, transform.position, Quaternion.identity);
             _audioManager.PlaySFX(_audioManager.explosionSFX, 1);
-            collision.GetComponent<TownHallHealth>().ChangeHealth(-_EnemyDamage); // Damage the TownHall            
+
+            // Damage the TownHall 
+            collision.GetComponent<TownHallHealth>().ChangeHealth(-_EnemyDamage);           
             _isDead = true;
-            _spawner.EnemyDestroyed(); // Notify the spawner
+
+            // Notify the spawner
+            _spawner.EnemyDestroyed();
             Destroy(gameObject);
         }
     }

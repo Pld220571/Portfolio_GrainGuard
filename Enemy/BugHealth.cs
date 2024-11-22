@@ -14,9 +14,14 @@ public class BugHealth : EnemyHealth
 
     protected override void Kill()
     {
-        Instantiate(_PrefabBugSplash, transform.position, Quaternion.identity); // Create a splash effect at the bug's position.
+        // Create a splash effect at the bug's position
+        Instantiate(_PrefabBugSplash, transform.position, Quaternion.identity);
         base.Kill();
-        GiveGold(_tanky.gainGold); // Reward gold based on the Tanky's gainGold property.
-        GiveXP(_tanky.gainXP);     // Reward XP based on the Tanky's gainXP property.
+
+        // Reward gold based on the Tanky's gainGold property
+        GiveGold(_tanky.gainGold);
+
+        // Reward XP based on the Tanky's gainXP property
+        GiveXP(_tanky.gainXP);
     }
 }

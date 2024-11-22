@@ -14,9 +14,14 @@ public class BearHealth : EnemyHealth
 
     protected override void Kill()
     {
-        Instantiate(_PrefabBloodEffect, transform.position, Quaternion.identity); // Create a blood effect at the bear's position.
+        // Create a blood effect at the bear's position.
+        Instantiate(_PrefabBloodEffect, transform.position, Quaternion.identity);
         base.Kill();
-        GiveGold(_tanky.gainGold); // Reward gold based on the Tanky's gainGold property.
-        GiveXP(_tanky.gainXP);     // Reward XP based on the Tanky's gainXP property.
+
+        // Reward gold based on the Tanky's gainGold property.
+        GiveGold(_tanky.gainGold);
+
+        // Reward XP based on the Tanky's gainXP property.
+        GiveXP(_tanky.gainXP);
     }
 }
